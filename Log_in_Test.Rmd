@@ -1,0 +1,88 @@
+---
+title: "Log-In Flexdashboard"
+author: 
+output: 
+  flexdashboard::flex_dashboard:
+    css: inst/assets/styles-auth.css
+    orientation: columns
+    vertical_layout: scroll
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+# load data in 'global' chunk so it can be shared by all users of the dashboard
+if(!require(shinymanager)){
+  install.packages('shinymanager', dependencies = TRUE, repos = "http://cran.us.r-project.org")
+  library(shinymanager)
+}
+if(!require(shiny)){
+  install.packages('shiny', dependencies = TRUE, repos = "http://cran.us.r-project.org")
+  library(shiny)
+}
+if(!require(tidyverse)){
+  install.packages('tidyverse', dependencies = TRUE, repos = "http://cran.us.r-project.org")
+  library(tidyverse)
+}
+if(!require(lubridate)){
+  install.packages('lubridate', dependencies = TRUE, repos = "http://cran.us.r-project.org")
+  library(lubridate)
+}
+
+# define some credentials (you can also use sqlite database)
+credentials <- data.frame(
+ user = c("shiny", "shinymanager"),
+ password = c("vh", "12345"),
+ stringsAsFactors = FALSE
+)
+```
+
+```{r}
+
+auth_ui(id = "auth")
+
+# Q1: How to transform to 'moduleServer'?
+auth <- callModule(
+   module = auth_server,
+   id = "auth" ,
+    check_credentials = check_credentials(credentials) # data.frame
+   # check_credentials = check_credentials("path/to/credentials.sqlite", passphrase = "supersecret") # sqlite
+)
+
+
+```
+
+```{r}
+# Store result of authentification in a reactive variable 
+eval_login <- reactive({
+     auth$result
+     })
+
+# Some Checks (printed in the Dashboard!)
+# FALSE if not looged in or login failiure
+# TRUE if correct login used
+reactive(auth$result)
+eval_login
+
+# isolate() the reactive variable is always FALSE
+isolate(eval_login())
+
+```
+
+
+
+<!-- does not work: 'isolate(eval_login())' alsway FALSE -->
+```{r, child="Child_test.Rmd", eval = isolate(eval_login())}
+```
+
+<!-- does not work: 
+Error in : Operation not allowed without an active reactive context.
+* You tried to do something that can only be done from inside a reactive consumer. -->
+<!-- ```{r, child="Child_test.Rmd", eval = eval_login()}
+``` -->
+
+<!-- does not work: 
+Error:  ungültiger Argumenttyp -->
+<!-- ```{r, child="Child_test.Rmd", eval = reactive(auth$result)}
+``` -->
+
+
