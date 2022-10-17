@@ -1,0 +1,30 @@
+## -----------------------------------------------------------------------------
+
+# choose next special weekday from given date
+# wday = 5 chooses next thursday
+mkr.nextweekday <- function(date, wday = 5) {
+     date <- as.Date(date)
+     diff <- wday - wday(date)
+     if( diff < 0 )
+          diff <- diff + 7
+     return(date + diff)
+}
+
+
+uiOutput("Date")
+
+output$Date <- renderUI({
+     dateInput(
+          inputId = "Date",
+          label = "Date",
+          value = mkr.nextweekday(Sys.Date(), 5), # next thursday
+          daysofweekdisabled = c(1,2,3,5,6,7), # only thursdays
+          format = "dd. MM yyyy",
+          startview = "month",
+          weekstart = 1,
+          language = "de" # German dates
+          )
+})
+
+
+

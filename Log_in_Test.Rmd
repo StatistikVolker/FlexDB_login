@@ -27,6 +27,11 @@ if(!require(lubridate)){
   install.packages('lubridate', dependencies = TRUE, repos = "http://cran.us.r-project.org")
   library(lubridate)
 }
+# NEU knitr
+if(!require(knitr)){
+  install.packages("knitr", dependencies = TRUE, repos = "http://cran.us.r-project.org")
+  library(knitr)
+}
 
 # define some credentials (you can also use sqlite database)
 credentials <- data.frame(
@@ -36,7 +41,7 @@ credentials <- data.frame(
 )
 ```
 
-```{r}
+```{r rck1}
 
 auth_ui(id = "auth")
 
@@ -51,28 +56,21 @@ auth <- callModule(
 
 ```
 
-```{r}
+```{r rck2}
 # Store result of authentification in a reactive variable 
 eval_login <- reactive({
      auth$result
      })
 
-# Some Checks (printed in the Dashboard!)
-# FALSE if not looged in or login failiure
-# TRUE if correct login used
-reactive(auth$result)
-eval_login
-
-# isolate() the reactive variable is always FALSE
-isolate(eval_login())
 
 ```
+
 
 
 
 <!-- does not work: 'isolate(eval_login())' alsway FALSE -->
-```{r, child="Child_test.Rmd", eval = isolate(eval_login())}
-```
+<!-- ```{r, child="Child_test.Rmd", eval = FALSE} 
+``` -->
 
 <!-- does not work: 
 Error in : Operation not allowed without an active reactive context.
@@ -85,4 +83,73 @@ Error:  ungültiger Argumenttyp -->
 <!-- ```{r, child="Child_test.Rmd", eval = reactive(auth$result)}
 ``` -->
 
+```{r rck3a, echo=FALSE, results='asis', eval = TRUE}
+# -------------------------------------------------------------------------
+# some tries
+# -------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------
+# suggestion stackoverflow by ismirsehregal
+# https://yihui.org/knitr/options/#chunk-options
+# https://bookdown.org/yihui/rmarkdown-cookbook/child-document.html
+# https://stackoverflow.com/questions/13327258/is-it-possible-to-share-variables-between-knitr-chunks-using-engine-bash
+# https://stackoverflow.com/questions/16827788/knitr-child-throws-error-after-upgrade-to-r-3-0
+
+# Renders as text only
+#res <- knitr::knit_child(input= 'Child_test.Rmd', quiet = TRUE)
+#reactive({
+#  if (auth$result) {
+    #cat(res, sep = '\n') # Vorschlag stackoverflow
+#  }
+#})
+
+
+# -------------------------------------------------------------------------
+# show R Markdown Terminal in Flexdashboard, but do not interpret the Code
+#reactive({
+#  if (auth$result) {
+#    knitr::knit_child(input= 'Child_test.Rmd')#x <- cat(res, sep = '\n')
+#  }
+#})
+
+
+# -------------------------------------------------------------------------
+# Some further tries
+# ... and Error Messages in German :-(
+
+#res <- knitr::knit_child(input= 'Child_test.Rmd', quiet = TRUE)
+#reactive({
+#  if (auth$result) {
+    #cat(eval(parse(cat(res, sep = '\n\n')))) #  'file' muss eine Zeichenkette oder eine Verbindung sein
+    #cat(eval(parse(paste(res, sep = '\n')))) #  kann Verbindung nicht öffnen
+#  }
+#})
+
+
+# -------------------------------------------------------------------------
+# Source RMD-file:
+# Idea from:
+# https://stackoverflow.com/questions/41962434/source-code-from-rmd-file-within-another-rmd
+# runs, but show nothing
+
+#source_rmd <- function(file, local = FALSE, ...){
+#  options(knitr.duplicate.label = 'allow')
+#
+#  tempR <- tempfile(pattern = "file",tmpdir = ".", fileext = ".R")
+#  on.exit(unlink(tempR))
+#  knitr::purl(file, output=tempR, quiet = TRUE)
+#
+#  envir <- globalenv()
+#  envir <- TRUE
+#  source(tempR, local = envir, ...)
+#}
+#
+#reactive({
+#  if (auth$result) {
+#    source_rmd("Child_test.Rmd")
+#  }
+#})
+
+
+```
 
